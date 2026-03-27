@@ -1,0 +1,293 @@
+<div class="p-6 bg-slate-50 min-h-screen">
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Facturas</h1>
+      <p class="text-slate-500">Gestión y control de la facturación emitida.</p>
+    </div>
+
+    <button
+      (click)="nuevaFactura()"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center shadow-md transition"
+    >
+      <span class="mr-2">+</span> Crear factura
+    </button>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Buscar por número, cliente o tipo de pago</label>
+        <div class="relative">
+          <input
+            type="text"
+            [(ngModel)]="busqueda"
+            (ngModelChange)="onFiltrosChange()"
+            placeholder="Ej: 001-001..., Juan Pérez, efectivo..."
+            class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+          />
+          <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
+        </div>
+      </div>
+
+      <div class="w-full">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Rango de fechas</label>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <input
+            type="date"
+            [(ngModel)]="fechaDesde"
+            (change)="onFiltrosChange()"
+            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+          />
+
+          <input
+            type="date"
+            [(ngModel)]="fechaHasta"
+            (change)="onFiltrosChange()"
+            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+          />
+        </div>
+
+        <div class="text-[11px] text-slate-500 mt-1">Inicio / Fin</div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap gap-2">
+        <span class="text-sm text-slate-500 self-center mr-2">Filtros rápidos:</span>
+
+        <button
+          (click)="filtroEstado = ''; onFiltrosChange()"
+          [class.bg-blue-600]="filtroEstado === ''"
+          [class.text-white]="filtroEstado === ''"
+          class="px-3 py-1 rounded-full text-xs font-medium border border-slate-200 transition hover:bg-slate-100"
+        >
+          Todas
+        </button>
+
+        <button
+          (click)="filtroEstado = 'Pagada'; onFiltrosChange()"
+          [class.bg-blue-600]="filtroEstado === 'Pagada'"
+          [class.text-white]="filtroEstado === 'Pagada'"
+          class="px-3 py-1 rounded-full text-xs font-medium border border-slate-200 transition hover:bg-slate-100"
+        >
+          Pagadas
+        </button>
+
+        <button
+          (click)="filtroEstado = 'Pendiente'; onFiltrosChange()"
+          [class.bg-blue-600]="filtroEstado === 'Pendiente'"
+          [class.text-white]="filtroEstado === 'Pendiente'"
+          class="px-3 py-1 rounded-full text-xs font-medium border border-slate-200 transition hover:bg-slate-100"
+        >
+          Pendientes
+        </button>
+
+        <button
+          (click)="filtroEstado = 'Anulada'; onFiltrosChange()"
+          [class.bg-blue-600]="filtroEstado === 'Anulada'"
+          [class.text-white]="filtroEstado === 'Anulada'"
+          class="px-3 py-1 rounded-full text-xs font-medium border border-slate-200 transition hover:bg-slate-100"
+        >
+          Anuladas
+        </button>
+      </div>
+
+      <button
+        (click)="limpiarFiltros()"
+        class="text-blue-600 text-sm font-medium hover:underline"
+      >
+        Limpiar filtros
+      </button>
+    </div>
+
+    <div *ngIf="mensajeError" class="mt-4 text-sm text-rose-600">
+      {{ mensajeError }}
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+    <div
+      *ngIf="cargando"
+      class="absolute inset-0 bg-white/60 flex items-center justify-center z-10 backdrop-blur-[1px]"
+    >
+      <div class="flex flex-col items-center">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-2"></div>
+        <span class="text-xs text-blue-600 font-medium uppercase tracking-wider">Cargando datos...</span>
+      </div>
+    </div>
+
+    <table class="w-full text-left">
+      <thead class="bg-slate-50 border-b border-slate-100">
+        <tr>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase">Número</th>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase">Cliente</th>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase">Fecha</th>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase">Tipo pago</th>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase text-right">Subtotal</th>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase text-right">IVA</th>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase text-right">Total</th>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase text-center">Estado</th>
+          <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase text-center">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-slate-100">
+        <tr
+          *ngFor="let f of facturasPagina; trackBy: trackByFactura"
+          class="hover:bg-slate-50 transition"
+        >
+          <td class="px-6 py-4 font-bold text-slate-700">
+            {{ f.facNumeroSerie || ('FAC-' + f.facId) }}
+          </td>
+
+          <td class="px-6 py-4 text-slate-600 text-sm">
+            {{ f.cliNombreCompleto || '-' }}
+          </td>
+
+          <td class="px-6 py-4 text-slate-500 text-sm">
+            {{ f.facFecha | date:'dd/MM/yyyy HH:mm' }}
+          </td>
+
+          <td class="px-6 py-4 text-slate-500 text-sm">
+            {{ f.tpaNombre || '-' }}
+          </td>
+
+          <td class="px-6 py-4 font-semibold text-slate-700 text-right">
+            {{ f.facSubtotal | currency }}
+          </td>
+
+          <td class="px-6 py-4 font-semibold text-slate-700 text-right">
+            {{ f.facIvaValor | currency }}
+          </td>
+
+          <td class="px-6 py-4 font-bold text-slate-700 text-right">
+            {{ f.facTotal | currency }}
+          </td>
+
+          <td class="px-6 py-4 text-center">
+            <span
+              [ngClass]="claseEstado(f.facEstado)"
+              class="px-3 py-1 rounded-lg text-xs font-bold uppercase border"
+            >
+              {{ textoEstado(f.facEstado) }}
+            </span>
+          </td>
+
+          <td class="px-6 py-4 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button
+                (click)="irADetalles(f.facId)"
+                class="px-3 py-1 text-slate-600 border border-slate-200 rounded-lg text-xs font-medium hover:bg-slate-100 transition"
+              >
+                Detalles
+              </button>
+
+              <button
+                *ngIf="f.facEstado !== null && f.facEstado !== undefined"
+                (click)="anularFactura(f)"
+                class="px-3 py-1 text-rose-600 border border-rose-200 rounded-lg text-xs font-medium hover:bg-rose-50 transition"
+              >
+                Anular
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="!cargando && facturasPagina.length === 0">
+          <td colspan="9" class="px-6 py-12 text-center">
+            <div class="flex flex-col items-center text-slate-400">
+              <span class="text-3xl mb-2">📁</span>
+              <p class="italic">No se encontraron facturas con los filtros aplicados.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- PAGINACIÓN -->
+    <div class="px-6 py-4 bg-slate-50 flex items-center justify-between border-t border-slate-100">
+      <span class="text-sm text-slate-500">
+        Mostrando <span class="font-bold text-slate-700">{{ facturasPagina.length }}</span> de
+        <span class="font-bold text-slate-700">{{ facturasFiltrado.length }}</span> factura(s)
+      </span>
+
+      <div class="flex gap-1">
+        <button
+          (click)="goToPage(pageIndex - 1)"
+          [disabled]="pageIndex === 1"
+          class="px-3 py-1 rounded-lg border bg-white text-sm font-medium hover:bg-slate-50 disabled:opacity-40 transition"
+        >
+          Anterior
+        </button>
+
+        <button
+          *ngFor="let p of pageNumbers"
+          (click)="goToPage(p)"
+          [class.bg-blue-600]="p === pageIndex"
+          [class.text-white]="p === pageIndex"
+          [class.border-blue-600]="p === pageIndex"
+          class="w-8 h-8 rounded-lg border bg-white text-sm font-medium hover:bg-slate-50 transition"
+        >
+          {{ p }}
+        </button>
+
+        <button
+          (click)="goToPage(pageIndex + 1)"
+          [disabled]="pageIndex === totalPages"
+          class="px-3 py-1 rounded-lg border bg-white text-sm font-medium hover:bg-slate-50 disabled:opacity-40 transition"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ANULAR FACTURA -->
+<div
+  *ngIf="modalAnularVisible"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+>
+  <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-200">
+      <h3 class="text-lg font-semibold text-slate-800">Anular factura</h3>
+      <p class="text-sm text-slate-500 mt-1">
+        Esta acción no se puede deshacer.
+      </p>
+    </div>
+
+    <div class="px-6 py-5">
+      <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
+        <p class="text-sm text-slate-700">
+          ¿Seguro que deseas anular la factura
+          <span class="font-semibold text-slate-900">
+            {{ facturaSeleccionadaAnular?.facNumeroSerie || ('FAC-' + facturaSeleccionadaAnular?.facId) }}
+          </span>?
+        </p>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
+      <button
+        type="button"
+        (click)="cerrarModalAnular()"
+        [disabled]="anulandoFactura"
+        class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition disabled:opacity-60"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        (click)="confirmarAnularFactura()"
+        [disabled]="anulandoFactura"
+        class="px-4 py-2 rounded-xl bg-rose-600 text-white text-sm font-medium hover:bg-rose-700 transition disabled:opacity-60"
+      >
+        {{ anulandoFactura ? 'Anulando...' : 'Sí, anular' }}
+      </button>
+    </div>
+  </div>
+</div>

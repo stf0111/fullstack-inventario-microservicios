@@ -1,0 +1,86 @@
+<div class="space-y-10 max-w-6xl mx-auto p-6">
+
+  <!-- HERO -->
+  <div 
+    class="relative overflow-hidden rounded-3xl p-10 text-white shadow-2xl transition-all duration-700"
+    [class.translate-y-6]="!animar"
+    [class.opacity-100]="animar"
+    [class.translate-y-0]="animar"
+    style="background: linear-gradient(135deg, #1e3a8a, #2563eb, #3b82f6);"
+  >
+
+    <div class="absolute -right-20 -top-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+    <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+
+    <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-4">
+      Steven Mendoza
+    </h1>
+
+    <h2 class="text-xl md:text-2xl font-semibold opacity-90 mb-4">
+      Sistema de Gestión Empresarial
+    </h2>
+
+    <p class="text-lg opacity-80 max-w-2xl">
+      Administra ventas, inventario, compras y finanzas desde un solo lugar.
+    </p>
+
+    <div class="mt-6 flex gap-4">
+      <div class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-semibold">
+        Plataforma Profesional
+      </div>
+      <div class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-semibold">
+        Control Total
+      </div>
+      <div class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-semibold">
+        Seguridad JWT
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD CARDS -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- VENTAS -->
+    <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div class="text-emerald-500 text-4xl mb-3">💰</div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">Ventas</h3>
+      <p class="text-sm text-slate-500">
+        Gestiona facturación, ingresos y clientes activos.
+      </p>
+    </div>
+
+    <!-- INVENTARIO -->
+    <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div class="text-blue-500 text-4xl mb-3">📦</div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">Inventario</h3>
+      <p class="text-sm text-slate-500">
+        Controla stock, movimientos y kardex en tiempo real.
+      </p>
+    </div>
+
+    <!-- FINANZAS -->
+    <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div class="text-rose-500 text-4xl mb-3">📊</div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">Finanzas</h3>
+      <p class="text-sm text-slate-500">
+        Visualiza ingresos, gastos y utilidad neta del negocio.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- MENSAJE INFERIOR -->
+  <div class="text-center pt-10">
+
+    <h2 class="text-3xl font-black text-slate-800 mb-3 animate-pulse">
+      Bienvenido al Control Total
+    </h2>
+
+    <p class="text-slate-500 max-w-2xl mx-auto">
+      E4V Dev Studio ha sido diseñado para ofrecerte una experiencia empresarial moderna,
+      segura y eficiente.
+    </p>
+
+  </div>
+
+</div>

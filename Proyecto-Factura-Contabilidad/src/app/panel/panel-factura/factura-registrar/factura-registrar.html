@@ -1,0 +1,351 @@
+<div class="p-6 bg-slate-50 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-tight">
+      Registro de Factura
+    </h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- COLUMNA IZQUIERDA -->
+      <div class="lg:col-span-4 space-y-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+          <h2 class="text-xs font-black text-blue-600 uppercase mb-4 tracking-widest">
+            Información del Cliente
+          </h2>
+
+          <div class="relative">
+            <input
+              type="text"
+              [(ngModel)]="busquedaCliente"
+              (input)="onInputCliente()"
+              class="w-full p-4 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-blue-500 transition"
+              placeholder="Buscar por cédula o nombre..."
+            />
+
+            <div
+              *ngIf="busquedaCliente.length > 1 && !clienteSeleccionado"
+              class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-64 overflow-y-auto"
+            >
+              <div *ngIf="buscandoCliente" class="p-4 text-center text-slate-400 text-sm">
+                Buscando...
+              </div>
+
+              <div
+                *ngIf="!buscandoCliente && clientesFiltrados.length === 0"
+                class="p-4 text-center text-slate-400 text-sm italic"
+              >
+                {{ errorCliente ? 'No se encontraron resultados' : 'No hay coincidencias' }}
+              </div>
+
+              <button
+                *ngFor="let c of clientesFiltrados"
+                type="button"
+                (click)="seleccionarCliente(c)"
+                class="w-full text-left p-4 hover:bg-blue-50 transition border-b border-slate-50 last:border-none"
+              >
+                <p class="font-bold text-slate-800">{{ c.cliNombre }} {{ c.cliApellido }}</p>
+                <p class="text-xs text-slate-500">{{ c.cliCedula }}</p>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              (click)="setConsumidorFinal()"
+              class="py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition text-sm"
+            >
+              Consumidor Final
+            </button>
+
+            <button
+              type="button"
+              (click)="irARegistrarCliente()"
+              class="py-3 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition text-sm"
+            >
+              + Nuevo Cliente
+            </button>
+          </div>
+
+          <div
+            *ngIf="clienteSeleccionado"
+            class="mt-6 p-4 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200"
+          >
+            <p class="text-[10px] font-black opacity-60 uppercase mb-1">Seleccionado</p>
+            <p class="font-bold">
+              {{ clienteSeleccionado.cliNombre }} {{ clienteSeleccionado.cliApellido }}
+            </p>
+            <p class="text-xs opacity-80">{{ clienteSeleccionado.cliCedula }}</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+          <h2 class="text-xs font-black text-blue-600 uppercase mb-4 tracking-widest">
+            Método de pago
+          </h2>
+
+          <select
+            [(ngModel)]="tipoPagoId"
+            class="w-full p-4 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-blue-500 transition"
+          >
+            <option [ngValue]="null">Seleccione...</option>
+            <option *ngFor="let t of tiposPago" [ngValue]="t.tpaId">
+              {{ (t.tpaNombre || '').toUpperCase() }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA -->
+      <div class="lg:col-span-8 space-y-6">
+        <!-- BUSCADOR PRODUCTO -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+          <h2 class="text-xs font-black text-blue-600 uppercase mb-4 tracking-widest">
+            Añadir Producto
+          </h2>
+
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="relative flex-1">
+              <input
+                type="text"
+                [(ngModel)]="busquedaProducto"
+                (input)="onInputProducto()"
+                class="w-full p-4 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-blue-500 transition"
+                placeholder="Buscar producto..."
+              />
+
+              <div
+                *ngIf="busquedaProducto.length > 1 && !productoSeleccionado"
+                class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-72 overflow-y-auto"
+              >
+                <div *ngIf="buscandoProducto" class="p-4 text-center text-slate-400 text-sm">
+                  Buscando...
+                </div>
+
+                <div
+                  *ngIf="!buscandoProducto && resultadosProducto.length === 0"
+                  class="p-4 text-center text-slate-400 text-sm italic"
+                >
+                  No se encontraron productos
+                </div>
+
+                <button
+                  *ngFor="let r of resultadosProducto"
+                  type="button"
+                  (click)="seleccionarProducto(r)"
+                  class="w-full text-left p-4 hover:bg-blue-50 transition border-b border-slate-50 flex justify-between items-center"
+                >
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <p class="font-bold text-slate-800">{{ r.nombre }}</p>
+
+                      <span class="text-[10px] font-black px-2 py-1 rounded-full bg-sky-100 text-sky-700">
+                        PRODUCTO
+                      </span>
+                    </div>
+
+                    <p class="text-xs text-slate-500">
+                      {{ r.marcaNombre || 'Sin marca' }} · {{ r.categoriaNombre || 'Sin categoría' }}
+                    </p>
+                    <p class="text-[11px] text-slate-400">Stock: {{ r.stock }}</p>
+                  </div>
+
+                  <span class="font-black text-blue-600">
+                    {{ r.precio | currency }}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="productoSeleccionado" class="flex gap-2">
+              <input
+                type="number"
+                [(ngModel)]="cantidadAgregar"
+                class="w-24 p-4 bg-slate-100 rounded-2xl text-center font-bold"
+                min="1"
+              />
+            </div>
+
+            <button
+              type="button"
+              (click)="agregarProducto()"
+              class="px-8 bg-blue-600 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-blue-200 transition"
+            >
+              Agregar
+            </button>
+          </div>
+
+          <div *ngIf="productoSeleccionado" class="mt-4 text-xs text-slate-500">
+            Seleccionado:
+            <span class="font-bold text-slate-700">{{ productoSeleccionado.nombre }}</span>
+            <span class="ml-2 font-black text-sky-600">PRODUCTO</span>
+            <span class="ml-2 text-slate-400">Stock: {{ productoSeleccionado.stock }}</span>
+          </div>
+        </div>
+
+        <!-- DETALLE FACTURA -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase">
+                    Producto
+                  </th>
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase text-center">
+                    Cant.
+                  </th>
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase text-right">
+                    Precio
+                  </th>
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase text-right">
+                    Subtotal
+                  </th>
+                  <th class="px-6 py-4"></th>
+                </tr>
+              </thead>
+
+              <tbody class="divide-y divide-slate-50">
+                <tr
+                  *ngFor="let item of items; let i = index"
+                  class="group hover:bg-slate-50 transition"
+                >
+                  <td class="px-6 py-4">
+                    <p class="font-bold text-slate-700">{{ item.nombre }}</p>
+                    <p class="text-xs text-slate-500">
+                      {{ item.marcaNombre || 'Sin marca' }} · {{ item.categoriaNombre || 'Sin categoría' }}
+                    </p>
+                    <p class="text-[11px] text-slate-400">Stock: {{ item.stockDisponible }}</p>
+                  </td>
+
+                  <td class="px-6 py-4 text-center">
+                    <input
+                      type="number"
+                      min="1"
+                      [max]="item.stockDisponible"
+                      class="w-20 p-2 bg-slate-100 rounded-xl text-center font-bold text-slate-700"
+                      [(ngModel)]="item.cantidad"
+                      (ngModelChange)="onCantidadItemChange(item)"
+                    />
+                  </td>
+
+                  <td class="px-6 py-4 text-right text-slate-600">
+                    {{ item.precioUnitario | currency }}
+                  </td>
+
+                  <td class="px-6 py-4 text-right font-black text-slate-800">
+                    {{ item.subtotal | currency }}
+                  </td>
+
+                  <td class="px-6 py-4 text-right">
+                    <button
+                      type="button"
+                      (click)="eliminarItem(i)"
+                      class="p-2 text-slate-300 hover:text-red-500 transition"
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="items.length === 0" class="p-12 text-center text-slate-400 italic">
+            No hay productos añadidos.
+          </div>
+
+          <!-- TOTALES -->
+          <div class="p-8 bg-slate-900 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left space-y-2">
+              <div>
+                <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">
+                  Subtotal
+                </p>
+                <p class="text-2xl font-black text-white">{{ subtotalFactura | currency }}</p>
+              </div>
+
+              <div>
+                <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">
+                  IVA ({{ ivaPorcentaje ?? 0 }}%)
+                </p>
+                <p class="text-xl font-black text-white">{{ ivaFactura | currency }}</p>
+              </div>
+
+              <div>
+                <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">
+                  Total
+                </p>
+                <p class="text-4xl font-black text-white">{{ totalFactura | currency }}</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="registrarFactura()"
+              [disabled]="cargando || items.length === 0"
+              class="w-full md:w-auto px-12 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-xl shadow-blue-900/20"
+            >
+              {{ cargando ? 'Registrando...' : 'Emitir Factura' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL OK -->
+  <div
+    *ngIf="modalOkVisible"
+    class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50"
+  >
+    <div class="bg-white rounded-3xl shadow-2xl p-7 w-full max-w-sm space-y-4 border border-emerald-200">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl font-black">
+          ✓
+        </div>
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">Listo</h2>
+          <div class="text-[11px] text-emerald-700 font-bold uppercase tracking-widest">
+            Operación exitosa
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm text-slate-700 font-medium">{{ modalOkMensaje }}</p>
+
+      <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full w-2/3 bg-emerald-500 rounded-full"></div>
+      </div>
+
+      <div class="text-[11px] text-slate-500">Redirigiendo...</div>
+    </div>
+  </div>
+
+  <!-- MODAL ERROR -->
+  <div
+    *ngIf="modalErrorVisible"
+    class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50"
+  >
+    <div class="bg-white rounded-3xl shadow-2xl p-7 w-full max-w-sm space-y-4 border border-rose-200">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-xl font-black">
+          !
+        </div>
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">Atención</h2>
+          <div class="text-[11px] text-rose-700 font-bold uppercase tracking-widest">
+            Revisa la información
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm text-slate-700 font-medium">{{ modalErrorMensaje }}</p>
+
+      <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full w-2/3 bg-rose-500 rounded-full"></div>
+      </div>
+
+      <div class="text-[11px] text-slate-500">Intenta de nuevo.</div>
+    </div>
+  </div>
+</div>

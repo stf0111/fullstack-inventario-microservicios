@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.angular/
+.vscode/
+.idea/
+
+bin/
+obj/
+.vs/
+
+*.log
+.env

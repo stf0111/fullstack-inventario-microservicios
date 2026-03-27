@@ -1,0 +1,217 @@
+<div class="space-y-6 max-w-3xl mx-auto">
+
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-semibold text-slate-900">
+      Crear usuario
+    </h1>
+
+    <button
+      type="button"
+      (click)="volver()"
+      class="px-3 py-1.5 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50"
+    >
+      Volver
+    </button>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-5">
+
+    <div *ngIf="mensajeError" class="text-sm text-rose-600 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
+      {{ mensajeError }}
+    </div>
+
+    <div *ngIf="mensajeOk" class="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-lg">
+      {{ mensajeOk }}
+    </div>
+
+    <div class="space-y-4">
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Cédula (Ecuador) *
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="usuario.usuCedula"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Ej: 1799999999"
+        />
+        <p class="text-[11px] text-slate-500 mt-1">
+          Se valida con algoritmo oficial (provincia + dígito verificador).
+        </p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Nombre *
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="usuario.usuNombre"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Ej: Sebas"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Apellido *
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="usuario.usuApellido"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Ej: Ta"
+        />
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-sm font-medium text-slate-700">
+            Rol *
+          </label>
+        </div>
+
+        <div *ngIf="roles.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <label
+            *ngFor="let r of roles"
+            class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="rolUsuario"
+              [checked]="rolesSeleccionados.includes(r.rolId)"
+              (change)="toggleRol(r.rolId)"
+              class="h-4 w-4"
+            />
+
+            <span class="text-sm text-slate-800 font-medium">
+              {{ r.rolNombre }}
+            </span>
+          </label>
+        </div>
+
+        <p class="text-[11px] text-slate-500 mt-2">
+          Solo se puede asignar un rol: <strong>ADMIN</strong>, <strong>OPERADOR</strong> o <strong>VENDEDOR</strong>.
+        </p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Estado
+        </label>
+        <div class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-50 text-emerald-600">
+          Activo por defecto
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-sm font-medium text-slate-700">
+            Contraseña *
+          </label>
+
+          <button
+            type="button"
+            class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            (click)="abrirConfirmarGenerar()"
+          >
+            Generar contraseña
+          </button>
+        </div>
+
+        <input
+          type="text"
+          [(ngModel)]="passwordManual"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Genera CTmp_A***** o escribe una manual"
+        />
+
+        <p class="text-[11px] text-slate-500">
+          El backend guarda el <strong>hash</strong> en <code>UsuPassword</code>.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="flex justify-end pt-2">
+      <button
+        type="button"
+        (click)="guardarUsuario()"
+        [disabled]="cargando"
+        class="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold
+               hover:bg-blue-700 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {{ cargando ? 'Guardando...' : 'Guardar usuario' }}
+      </button>
+    </div>
+
+  </div>
+
+  <div *ngIf="confirmVisible" class="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-40">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
+      <h2 class="text-lg font-semibold text-slate-900">Confirmar generación</h2>
+      <p class="text-sm text-slate-600">{{ confirmMensaje }}</p>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-xl border border-slate-200 text-xs text-slate-600 hover:bg-slate-50"
+          (click)="cancelarConfirmacion()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 rounded-xl bg-blue-600 text-xs font-semibold text-white hover:bg-blue-700"
+          (click)="confirmarAccion()"
+        >
+          Generar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="modalPasswordVisible" class="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-40">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
+      <h2 class="text-lg font-semibold text-slate-900">Contraseña generada</h2>
+
+      <p class="text-sm text-slate-600">
+        Esta es la contraseña temporal generada para el nuevo usuario.
+      </p>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-center">
+        <span class="font-mono text-sm text-slate-900">
+          {{ passwordGenerada }}
+        </span>
+      </div>
+
+      <p class="text-[11px] text-slate-500">
+        Anótala y compártela de forma segura. El usuario debería cambiarla en su primer inicio de sesión.
+      </p>
+
+      <div class="flex justify-end pt-2">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-xl bg-blue-600 text-xs font-semibold text-white hover:bg-blue-700"
+          (click)="cerrarModalPassword()"
+        >
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="modalOkVisible" class="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-40">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
+      <h2 class="text-lg font-semibold text-slate-900">Listo</h2>
+      <p class="text-sm text-slate-600">{{ modalOkMensaje }}</p>
+      <div class="text-[11px] text-slate-500">Redirigiendo...</div>
+    </div>
+  </div>
+
+</div>

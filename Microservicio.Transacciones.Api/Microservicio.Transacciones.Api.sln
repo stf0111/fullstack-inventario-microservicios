@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microservicio.Transacciones.Api", "Microservicio.Transacciones.Api.csproj", "{5D9398CD-96D6-4E0A-A96C-B924F21AB9A3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D9398CD-96D6-4E0A-A96C-B924F21AB9A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D9398CD-96D6-4E0A-A96C-B924F21AB9A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D9398CD-96D6-4E0A-A96C-B924F21AB9A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D9398CD-96D6-4E0A-A96C-B924F21AB9A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D1B5F8F3-184B-49CB-99CF-C9BFF7C69C18}
+	EndGlobalSection
+EndGlobal

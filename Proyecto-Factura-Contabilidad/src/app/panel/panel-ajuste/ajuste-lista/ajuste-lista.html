@@ -1,0 +1,291 @@
+<div class="space-y-6">
+
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Ajuste de stock</h1>
+      <p class="text-sm text-slate-500">
+        Ajuste directo por <strong>producto</strong> con registro en Kardex.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="px-3 py-1.5 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+      (click)="recargar()"
+      [disabled]="cargando"
+    >
+      Recargar
+    </button>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div class="md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-500 mb-1">
+          Buscar por producto, marca, categoría o ID
+        </label>
+        <input
+          type="text"
+          class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                 placeholder:text-slate-400"
+          placeholder="Ej: Whey, Creatina, Optimum, 12..."
+          [(ngModel)]="termino"
+          (ngModelChange)="aplicarFiltros()"
+          (keyup.enter)="aplicarFiltros()"
+        />
+      </div>
+
+      <div class="flex items-end">
+        <label class="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            [(ngModel)]="soloActivos"
+            (change)="aplicarFiltros()"
+          />
+          Solo activos
+        </label>
+      </div>
+
+      <div class="flex items-end">
+        <button
+          type="button"
+          class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50"
+          (click)="limpiar()"
+        >
+          Limpiar
+        </button>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center text-xs">
+      <div class="text-slate-500">
+        * Este ajuste llama a Transacciones para actualizar stock y registrar movimiento en Kardex.
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span *ngIf="mensajeError" class="text-rose-600">{{ mensajeError }}</span>
+        <span *ngIf="mensajeOk" class="text-emerald-600">{{ mensajeOk }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div *ngIf="cargando" class="px-4 py-6 text-center text-xs text-slate-500">
+      Cargando productos...
+    </div>
+
+    <div *ngIf="!cargando && productosFiltrados.length === 0" class="px-4 py-6 text-center text-xs text-slate-500">
+      No se encontraron productos con los filtros actuales.
+    </div>
+
+    <div class="overflow-x-auto" *ngIf="!cargando && productosFiltrados.length > 0">
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 border-b border-slate-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Producto</th>
+            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Categoría</th>
+            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Marca</th>
+            <th class="px-4 py-2 text-right text-xs font-semibold text-slate-500">Stock</th>
+            <th class="px-4 py-2 text-center text-xs font-semibold text-slate-500">Estado</th>
+            <th class="px-4 py-2 text-center text-xs font-semibold text-slate-500">Acción</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr
+            *ngFor="let p of productosPagina; trackBy: trackByProdId"
+            class="border-b border-slate-100 hover:bg-slate-50"
+          >
+            <td class="px-4 py-2">
+              <div class="font-semibold text-slate-900">{{ p.prodNombre }}</div>
+              <div class="text-[11px] text-slate-500">ID: {{ p.prodId }}</div>
+            </td>
+
+            <td class="px-4 py-2 text-slate-600">
+              {{ p.catNombre || '-' }}
+            </td>
+
+            <td class="px-4 py-2 text-slate-600">
+              {{ p.marcaNombre || '-' }}
+            </td>
+
+            <td class="px-4 py-2 text-right font-mono text-slate-800">
+              {{ p.prodCantidad }}
+            </td>
+
+            <td class="px-4 py-2 text-center">
+              <span
+                class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border"
+                [ngClass]="claseEstado(p.prodEstado)"
+              >
+                {{ p.prodEstado ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+
+            <td class="px-4 py-2 text-center">
+              <button
+                type="button"
+                class="px-2.5 py-1 rounded-lg border border-blue-200 bg-blue-50 text-[11px]
+                       text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+                (click)="abrirModalEditar(p)"
+                [disabled]="cargando"
+              >
+                Ajustar stock
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-2 text-[11px] text-slate-500">
+      <span>
+        Mostrando
+        <ng-container *ngIf="productosFiltrados.length > 0; else rangoVacio">
+          {{ (paginaActual - 1) * tamanoPagina + 1 }}
+          -
+          {{ (paginaActual - 1) * tamanoPagina + productosPagina.length }}
+          de {{ productosFiltrados.length }} producto(s)
+        </ng-container>
+        <ng-template #rangoVacio>0 de 0 producto(s)</ng-template>
+      </span>
+
+      <div class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
+          (click)="paginaAnterior()"
+          [disabled]="paginaActual === 1"
+        >
+          Anterior
+        </button>
+
+        <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+
+        <button
+          type="button"
+          class="px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
+          (click)="paginaSiguiente()"
+          [disabled]="paginaActual === totalPaginas"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="modalVisible" class="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-40">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">Ajustar stock</h2>
+          <p class="text-sm text-slate-600">
+            El ajuste actualizará stock y registrará Kardex.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="px-2 py-1 rounded-lg border border-slate-200 text-xs text-slate-600 hover:bg-slate-50"
+          (click)="cerrarModal()"
+          [disabled]="cargando"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm space-y-1">
+        <div>
+          <span class="text-slate-500">Producto:</span>
+          <span class="font-medium text-slate-900">{{ modalProducto?.prodNombre }}</span>
+          <span class="text-[11px] text-slate-500 ml-2">(ID: {{ modalProducto?.prodId }})</span>
+        </div>
+        <div>
+          <span class="text-slate-500">Categoría:</span>
+          <span>{{ modalProducto?.catNombre || '-' }}</span>
+        </div>
+        <div>
+          <span class="text-slate-500">Marca:</span>
+          <span>{{ modalProducto?.marcaNombre || '-' }}</span>
+        </div>
+        <div>
+          <span class="text-slate-500">Stock actual:</span>
+          <span class="font-mono font-semibold">{{ modalProducto?.prodCantidad }}</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Nuevo stock *
+        </label>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          [(ngModel)]="nuevoStock"
+          (keyup.enter)="confirmarAjuste()"
+        />
+        <p class="text-[11px] text-slate-500 mt-1">
+          Debe ser un número entero mayor o igual a 0.
+        </p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Motivo *
+        </label>
+        <input
+          type="text"
+          maxlength="30"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          [(ngModel)]="motivoAjuste"
+          placeholder="Ej: Ajuste manual"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Documento referencia
+        </label>
+        <input
+          type="text"
+          maxlength="50"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          [(ngModel)]="documentoReferencia"
+          placeholder="Opcional"
+        />
+      </div>
+
+      <div *ngIf="modalError" class="text-sm text-rose-600 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
+        {{ modalError }}
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-xl border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          (click)="cerrarModal()"
+          [disabled]="cargando"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="px-4 py-2 rounded-xl bg-blue-600 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40"
+          (click)="confirmarAjuste()"
+          [disabled]="cargando || !puedeConfirmarModal()"
+        >
+          {{ cargando ? 'Aplicando...' : 'Confirmar ajuste' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

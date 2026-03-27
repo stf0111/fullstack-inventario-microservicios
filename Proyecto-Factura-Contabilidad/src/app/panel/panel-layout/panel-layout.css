@@ -1,0 +1,21 @@
+/* Hace que el layout ocupe toda la pantalla */
+:host {
+  display: block;
+  height: 100vh;
+}
+
+/* Icono cuadradito de cada opción de menú */
+.menu-icon {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+/* Suaviza el scroll del contenido principal */
+main {
+  scroll-behavior: smooth;
+}

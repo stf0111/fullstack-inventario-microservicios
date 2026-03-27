@@ -1,0 +1,134 @@
+<div class="p-6 bg-slate-50 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+
+    <div class="mb-6 flex items-center gap-4">
+      <button
+        type="button"
+        (click)="volver()"
+        class="px-3 py-2 rounded-2xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-100 transition"
+      >
+        ← Volver al listado
+      </button>
+
+      <div>
+        <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tight">
+          Detalle de Ingreso #{{ compraId }}
+        </h1>
+        <p class="text-sm text-slate-500">
+          Productos registrados en este ingreso.
+        </p>
+      </div>
+    </div>
+
+    <div *ngIf="mensajeError" class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">
+      {{ mensajeError }}
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden relative">
+
+      <div *ngIf="cargando" class="p-20 flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-2"></div>
+        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">
+          Cargando mercadería...
+        </p>
+      </div>
+
+      <ng-container *ngIf="!cargando && compra">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 border-b border-slate-100 bg-slate-50">
+          <div class="bg-white rounded-2xl border border-slate-100 p-4">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Compra ID</div>
+            <div class="text-lg font-black text-slate-800">{{ compra.compraId }}</div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-100 p-4">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Proveedor</div>
+            <div class="text-lg font-black text-slate-800">{{ compra.provNombre || '—' }}</div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-100 p-4">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Fecha</div>
+            <div class="text-lg font-black text-slate-800">{{ compra.compraFecha | date:'yyyy-MM-dd' }}</div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-100 p-4">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Usuario ID</div>
+            <div class="text-lg font-black text-slate-800">{{ compra.usuId }}</div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-slate-50 border-b border-slate-100">
+              <tr>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                  Producto Entrante
+                </th>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center">
+                  Cantidad Recibida
+                </th>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">
+                  Costo Unitario
+                </th>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">
+                  Subtotal Inversión
+                </th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y divide-slate-100">
+              <tr *ngFor="let item of items" class="hover:bg-slate-50 transition">
+                <td class="px-6 py-4">
+                  <p class="text-slate-700 font-bold">{{ item.prodNombre || 'Producto sin nombre' }}</p>
+                  <p class="text-[10px] text-slate-400 font-medium">ID: {{ item.prodId }}</p>
+                </td>
+
+                <td class="px-6 py-4 text-slate-600 text-center font-medium">
+                  {{ item.cantidad }}
+                </td>
+
+                <td class="px-6 py-4 text-slate-600 text-right">
+                  {{ item.precio | currency }}
+                </td>
+
+                <td class="px-6 py-4 text-slate-800 font-black text-right">
+                  {{ item.subtotal | currency }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-slate-900 p-8 flex justify-end">
+          <div class="text-right">
+            <p class="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-1">
+              Inversión Total de Compra
+            </p>
+            <p class="text-4xl font-black text-white">
+              {{ totalCompra | currency }}
+            </p>
+          </div>
+        </div>
+      </ng-container>
+
+      <div *ngIf="!cargando && !compra && !mensajeError" class="p-20 text-center">
+        <div class="flex flex-col items-center opacity-30">
+          <span class="text-5xl mb-4">📦</span>
+          <p class="text-slate-500 italic font-medium">
+            No se encontró información de esta compra.
+          </p>
+        </div>
+      </div>
+
+      <div *ngIf="!cargando && compra && items.length === 0" class="p-20 text-center">
+        <div class="flex flex-col items-center opacity-30">
+          <span class="text-5xl mb-4">📦</span>
+          <p class="text-slate-500 italic font-medium">
+            No se encontraron productos registrados en este ingreso.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

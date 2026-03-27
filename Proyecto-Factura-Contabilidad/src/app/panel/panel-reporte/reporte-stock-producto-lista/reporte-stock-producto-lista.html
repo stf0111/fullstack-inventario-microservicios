@@ -1,0 +1,262 @@
+<div class="space-y-6">
+
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Stock por producto</h1>
+      <p class="text-sm text-slate-500">
+        Consulta consolidada del stock disponible por categoría, marca y producto.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium
+             bg-slate-100 text-slate-700 shadow-sm hover:bg-slate-200"
+      (click)="cargarDatos(true)"
+    >
+      Actualizar
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+      <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Registros</p>
+      <p class="mt-2 text-2xl font-bold text-slate-900">{{ totalRegistros }}</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+      <p class="text-xs font-semibold text-blue-500 uppercase tracking-wide">Categorías</p>
+      <p class="mt-2 text-2xl font-bold text-blue-600">{{ totalTipos }}</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+      <p class="text-xs font-semibold text-violet-500 uppercase tracking-wide">Marcas</p>
+      <p class="mt-2 text-2xl font-bold text-violet-600">{{ totalMarcas }}</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+      <p class="text-xs font-semibold text-emerald-500 uppercase tracking-wide">Unidades</p>
+      <p class="mt-2 text-2xl font-bold text-emerald-600">{{ totalUnidades }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
+
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-500 mb-1">
+          Buscar por producto, marca, categoría o ID
+        </label>
+        <input
+          type="text"
+          class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                 placeholder:text-slate-400"
+          placeholder="Ej: Creatina, Dragon Pharma, Proteína o 12"
+          [(ngModel)]="terminoBusqueda"
+          (ngModelChange)="buscar()"
+          (keyup.enter)="buscar()"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Categoría</label>
+        <select
+          class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          [(ngModel)]="filtroTipoNombre"
+          (change)="buscar()"
+        >
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let tipo of tiposDisponibles" [value]="tipo">
+            {{ tipo }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Marca</label>
+        <select
+          class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          [(ngModel)]="filtroMarcaNombre"
+          (change)="buscar()"
+        >
+          <option value="">Todas las marcas</option>
+          <option *ngFor="let marca of marcasDisponibles" [value]="marca">
+            {{ marca }}
+          </option>
+        </select>
+      </div>
+
+      <div class="flex items-end">
+        <label class="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            [(ngModel)]="soloActivos"
+            (change)="buscar()"
+          />
+          Solo activos
+        </label>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center text-xs mt-2">
+      <button
+        type="button"
+        class="px-3 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
+        (click)="limpiarFiltros()"
+      >
+        Limpiar filtros
+      </button>
+
+      <div class="flex items-center gap-3">
+        <span *ngIf="mensajeError" class="text-rose-600">{{ mensajeError }}</span>
+        <span *ngIf="mensajeOk" class="text-emerald-600">{{ mensajeOk }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Categoría</th>
+            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Marca</th>
+            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Producto</th>
+            <th class="px-4 py-2 text-right text-xs font-semibold text-slate-500">Stock actual</th>
+            <th class="px-4 py-2 text-center text-xs font-semibold text-slate-500">Estado stock</th>
+            <th class="px-4 py-2 text-center text-xs font-semibold text-slate-500">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngIf="!cargando && reportesFiltrados.length === 0">
+            <td colspan="6" class="px-4 py-6 text-center text-xs text-slate-500">
+              No se encontraron registros con los filtros actuales.
+            </td>
+          </tr>
+
+          <tr *ngIf="cargando">
+            <td colspan="6" class="px-4 py-6 text-center text-xs text-slate-500">
+              Cargando reporte...
+            </td>
+          </tr>
+
+          <tr *ngFor="let item of reportesPaginaActual" class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-2 text-slate-600">
+              {{ item.catNombre || '-' }}
+            </td>
+
+            <td class="px-4 py-2 text-slate-600">
+              {{ item.marcaNombre || '-' }}
+            </td>
+
+            <td class="px-4 py-2 font-medium text-slate-800">
+              {{ item.prodNombre }}
+            </td>
+
+            <td class="px-4 py-2 text-right text-slate-900 font-semibold">
+              {{ item.prodCantidad || 0 }}
+            </td>
+
+            <td class="px-4 py-2 text-center">
+              <span [ngClass]="obtenerClaseStock(item)">
+                {{ obtenerTextoStock(item) }}
+              </span>
+            </td>
+
+            <td class="px-4 py-2">
+              <div class="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  class="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-[11px]
+                         text-slate-700 hover:bg-slate-100"
+                  (click)="verDetalle(item)"
+                >
+                  Detalles
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-2 border-t border-slate-100 text-[11px] text-slate-500">
+      <span>
+        Mostrando
+        <ng-container *ngIf="reportesFiltrados.length > 0; else rangoVacio">
+          {{ (paginaActual - 1) * tamanoPagina + 1 }}
+          -
+          {{ (paginaActual - 1) * tamanoPagina + reportesPaginaActual.length }}
+          de {{ reportesFiltrados.length }} registro(s)
+        </ng-container>
+        <ng-template #rangoVacio>0 de 0 registro(s)</ng-template>
+      </span>
+
+      <div class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
+          (click)="paginaAnterior()"
+          [disabled]="paginaActual === 1"
+        >
+          Anterior
+        </button>
+
+        <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+
+        <button
+          type="button"
+          class="px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
+          (click)="paginaSiguiente()"
+          [disabled]="paginaActual === totalPaginas"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="modalDetalleVisible" class="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-40">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+      <h2 class="text-lg font-semibold text-slate-900">Detalle del stock</h2>
+
+      <p class="text-sm text-slate-600">
+        Información consolidada del producto seleccionado.
+      </p>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 space-y-2 text-sm">
+        <div><span class="text-slate-500">Categoría:</span> {{ itemSeleccionado?.catNombre || '-' }}</div>
+        <div><span class="text-slate-500">Marca:</span> {{ itemSeleccionado?.marcaNombre || '-' }}</div>
+        <div><span class="text-slate-500">Producto:</span> {{ itemSeleccionado?.prodNombre || '-' }}</div>
+        <div><span class="text-slate-500">Stock actual:</span> {{ itemSeleccionado?.prodCantidad || 0 }}</div>
+        <div><span class="text-slate-500">Precio compra:</span> {{ itemSeleccionado?.prodPreciocom | currency }}</div>
+        <div><span class="text-slate-500">Precio venta:</span> {{ itemSeleccionado?.prodPrecioven | currency }}</div>
+        <div>
+          <span class="text-slate-500">Estado producto:</span>
+          <span [ngClass]="itemSeleccionado ? obtenerClaseEstadoProducto(itemSeleccionado) : ''">
+            {{ itemSeleccionado ? obtenerTextoEstadoProducto(itemSeleccionado) : '-' }}
+          </span>
+        </div>
+        <div>
+          <span class="text-slate-500">Estado stock:</span>
+          {{ itemSeleccionado ? obtenerTextoStock(itemSeleccionado) : '-' }}
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-xl bg-blue-600 text-xs font-semibold text-white hover:bg-blue-700"
+          (click)="cerrarModalDetalle()"
+        >
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

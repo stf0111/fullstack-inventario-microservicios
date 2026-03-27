@@ -1,0 +1,280 @@
+<div class="space-y-6 max-w-3xl mx-auto">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Modificar producto</h1>
+      <p class="text-sm text-slate-500">Actualiza los datos del producto seleccionado.</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="volver()"
+      class="px-3 py-1.5 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50"
+    >
+      Volver
+    </button>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-5">
+
+    <div *ngIf="mensajeError" class="text-sm text-rose-600 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
+      {{ mensajeError }}
+    </div>
+
+    <div *ngIf="mensajeOk" class="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-lg">
+      {{ mensajeOk }}
+    </div>
+
+    <div *ngIf="cargando" class="text-sm text-slate-500">Cargando...</div>
+
+    <div class="space-y-6" *ngIf="!cargando && producto">
+
+      <div class="border-b border-slate-100 pb-4">
+        <h2 class="text-base font-semibold text-slate-800">Datos del producto</h2>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Código (ID)</label>
+        <input
+          type="text"
+          [value]="producto.prodId"
+          disabled
+          class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-slate-50 text-slate-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Nombre *</label>
+        <input
+          type="text"
+          [(ngModel)]="producto.prodNombre"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Ej: Agua 1L, Whey Protein..."
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
+        <textarea
+          [(ngModel)]="producto.prodDescripcion"
+          rows="3"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Descripción opcional del producto"
+        ></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Cantidad *</label>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          [(ngModel)]="producto.prodCantidad"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="0"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Precio compra *</label>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          [(ngModel)]="producto.prodPreciocom"
+          (input)="onPrecioCompraInput()"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="0.00"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Utilidad (%) *</label>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          [(ngModel)]="utilidadPorcentaje"
+          (input)="onUtilidadInput()"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="30"
+        />
+
+        <p class="text-[11px] text-slate-500 mt-1">
+          Si cambias la utilidad, el sistema recalcula el precio de venta <strong>si no lo editaste manualmente</strong>.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-sm font-medium text-slate-700">Precio venta *</label>
+
+          <button
+            type="button"
+            class="text-xs px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800"
+            (click)="activarCalculoAutomatico()"
+          >
+            Usar cálculo automático
+          </button>
+        </div>
+
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          [(ngModel)]="producto.prodPrecioven"
+          (input)="onPrecioVentaInput()"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="0.00"
+        />
+
+        <p class="text-[11px] text-slate-500">
+          Si editas manualmente, deja de recalcular hasta que presiones <strong>“Usar cálculo automático”</strong>.
+        </p>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-sm font-medium text-slate-700">Marca *</label>
+
+          <button
+            type="button"
+            class="text-xs px-2 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            (click)="agregandoMarca = !agregandoMarca"
+          >
+            + Nueva marca
+          </button>
+        </div>
+
+        <select
+          [(ngModel)]="producto.marcaId"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option [ngValue]="null">Seleccione una marca</option>
+          <option *ngFor="let m of marcas; trackBy: trackById" [ngValue]="m.marcaId">
+            {{ m.marcaNombre }}
+          </option>
+        </select>
+
+        <div *ngIf="agregandoMarca" class="mt-2 flex gap-2">
+          <input
+            type="text"
+            [(ngModel)]="nuevaMarcaNombre"
+            class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Nombre de la nueva marca"
+          />
+          <button
+            type="button"
+            class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700"
+            (click)="guardarNuevaMarca()"
+          >
+            Guardar
+          </button>
+          <button
+            type="button"
+            class="px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-600 hover:bg-slate-50"
+            (click)="cancelarNuevaMarca()"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-sm font-medium text-slate-700">Categoría *</label>
+
+          <button
+            type="button"
+            class="text-xs px-2 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            (click)="agregandoCategoria = !agregandoCategoria"
+          >
+            + Nueva categoría
+          </button>
+        </div>
+
+        <select
+          [(ngModel)]="producto.catId"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option [ngValue]="null">Seleccione una categoría</option>
+          <option *ngFor="let c of categorias; trackBy: trackById" [ngValue]="c.catId">
+            {{ c.catNombre }}
+          </option>
+        </select>
+
+        <div *ngIf="agregandoCategoria" class="mt-2 flex gap-2">
+          <input
+            type="text"
+            [(ngModel)]="nuevaCategoriaNombre"
+            class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Nombre de la nueva categoría"
+          />
+          <button
+            type="button"
+            class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700"
+            (click)="guardarNuevaCategoria()"
+          >
+            Guardar
+          </button>
+          <button
+            type="button"
+            class="px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-600 hover:bg-slate-50"
+            (click)="cancelarNuevaCategoria()"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Estado</label>
+        <div class="flex items-center gap-4 text-sm">
+          <label class="inline-flex items-center gap-1">
+            <input type="radio" name="estado" [value]="true" [(ngModel)]="producto.prodEstado" />
+            <span>Activo</span>
+          </label>
+
+          <label class="inline-flex items-center gap-1">
+            <input type="radio" name="estado" [value]="false" [(ngModel)]="producto.prodEstado" />
+            <span>Inactivo</span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="flex justify-end pt-2">
+      <button
+        type="button"
+        (click)="guardarCambios()"
+        [disabled]="cargando || !esAdminUI()"
+        class="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold
+               hover:bg-blue-700 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        [title]="!esAdminUI() ? 'Sin permisos' : 'Guardar cambios'"
+      >
+        {{ cargando ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+
+  </div>
+
+  <div *ngIf="modalOkVisible" class="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-40">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
+      <h2 class="text-lg font-semibold text-slate-900">Listo</h2>
+      <p class="text-sm text-slate-600">{{ modalOkMensaje }}</p>
+      <div class="text-[11px] text-slate-500">Redirigiendo...</div>
+    </div>
+  </div>
+
+</div>

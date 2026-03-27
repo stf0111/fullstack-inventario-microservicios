@@ -1,0 +1,343 @@
+<div class="p-6 bg-slate-50 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-tight">
+      Ingreso de Mercadería
+    </h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <!-- PROVEEDOR -->
+      <div class="lg:col-span-4 space-y-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+          <h2 class="text-xs font-black text-blue-600 uppercase mb-4 tracking-widest">
+            Proveedor y Fecha
+          </h2>
+
+          <div class="space-y-4">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase">
+                Fecha de Compra
+              </label>
+              <input
+                type="date"
+                [(ngModel)]="fechaCompra"
+                class="w-full p-3 bg-slate-100 rounded-xl border-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div class="relative">
+              <label class="text-[10px] font-bold text-slate-400 uppercase">
+                Buscar Proveedor
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="busquedaProveedor"
+                (input)="onInputProveedor()"
+                class="w-full p-4 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-blue-500 transition"
+                placeholder="Nombre o RUC..."
+              />
+
+              <div
+                *ngIf="busquedaProveedor.length > 0 && !proveedorSeleccionado"
+                class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-60 overflow-y-auto"
+              >
+                <div
+                  *ngIf="buscandoProveedor"
+                  class="p-4 text-center text-sm text-slate-400"
+                >
+                  Buscando...
+                </div>
+
+                <div
+                  *ngIf="!buscandoProveedor && proveedoresFiltrados.length === 0"
+                  class="p-4 text-center text-sm text-slate-400 italic"
+                >
+                  No hay coincidencias
+                </div>
+
+                <button
+                  *ngFor="let p of proveedoresFiltrados"
+                  type="button"
+                  (click)="seleccionarProveedor(p)"
+                  class="w-full text-left p-4 hover:bg-blue-50 transition border-b border-slate-50 last:border-none"
+                >
+                  <p class="font-bold text-slate-800">{{ p.provNombre }}</p>
+                  <p class="text-xs text-slate-500">{{ p.provRuc || 'Sin RUC' }}</p>
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="irACrearProveedor()"
+              class="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition text-sm"
+            >
+              + Nuevo Proveedor
+            </button>
+
+            <div
+              *ngIf="proveedorSeleccionado"
+              class="mt-4 p-4 bg-blue-600 rounded-2xl text-white shadow-lg"
+            >
+              <p class="text-[10px] font-black opacity-60 uppercase">
+                Seleccionado
+              </p>
+              <p class="font-bold">
+                {{ proveedorSeleccionado.provNombre }}
+              </p>
+              <p class="text-xs opacity-80">
+                {{ proveedorSeleccionado.provRuc || 'Sin RUC' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTO -->
+      <div class="lg:col-span-8 space-y-6">
+        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+          <h2 class="text-xs font-black text-blue-600 uppercase mb-6 tracking-widest">
+            Información del Producto
+          </h2>
+
+          <div
+            *ngIf="mensajeError"
+            class="mb-5 p-4 rounded-2xl border border-rose-200 bg-rose-50 text-rose-700 font-bold text-sm"
+          >
+            {{ mensajeError }}
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- BUSCAR PRODUCTO -->
+            <div class="relative md:col-span-2">
+              <input
+                type="text"
+                [(ngModel)]="busquedaProducto"
+                (input)="onInputProducto()"
+                class="w-full p-4 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-blue-500 transition"
+                placeholder="Buscar producto por nombre..."
+              />
+
+              <div
+                *ngIf="busquedaProducto.length > 0 && !productoSeleccionado"
+                class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-60 overflow-y-auto"
+              >
+                <div
+                  *ngIf="buscandoProducto"
+                  class="p-4 text-center text-sm text-slate-400"
+                >
+                  Buscando...
+                </div>
+
+                <div
+                  *ngIf="!buscandoProducto && productosFiltrados.length === 0"
+                  class="p-4 text-center text-sm text-slate-400 italic"
+                >
+                  No se encontró el producto
+                </div>
+
+                <button
+                  *ngFor="let p of productosFiltrados"
+                  type="button"
+                  (click)="seleccionarProducto(p)"
+                  class="w-full text-left p-4 hover:bg-blue-50 transition border-b border-slate-50 last:border-none flex justify-between items-center gap-4"
+                >
+                  <div>
+                    <p class="font-bold text-slate-800">{{ p.prodNombre }}</p>
+                    <p class="text-xs text-slate-500 font-medium">
+                      {{ p.marcaNombre || 'Sin marca' }} · {{ p.catNombre || 'Sin categoría' }}
+                    </p>
+                    <p class="text-[11px] text-slate-400">
+                      Stock actual: {{ p.prodCantidad }}
+                    </p>
+                  </div>
+
+                  <span class="text-blue-600 font-black whitespace-nowrap">
+                    {{ p.prodPreciocom | currency }}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="productoSeleccionado" class="md:col-span-2 rounded-2xl bg-slate-50 p-4">
+              <p class="font-bold text-slate-800">{{ productoSeleccionado.prodNombre }}</p>
+              <p class="text-xs text-slate-500">
+                {{ productoSeleccionado.marcaNombre || 'Sin marca' }} · {{ productoSeleccionado.catNombre || 'Sin categoría' }}
+              </p>
+              <p class="text-[11px] text-slate-400">
+                Stock actual: {{ productoSeleccionado.prodCantidad }}
+              </p>
+            </div>
+
+            <!-- CANTIDAD -->
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">
+                Cantidad
+              </label>
+              <input
+                type="number"
+                [(ngModel)]="cantidadAgregar"
+                class="w-full p-4 bg-slate-100 rounded-2xl text-center font-bold"
+                min="1"
+              />
+            </div>
+
+            <!-- PRECIO -->
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">
+                Precio de Compra
+              </label>
+              <input
+                type="number"
+                [(ngModel)]="precioAgregar"
+                class="w-full p-4 bg-slate-100 rounded-2xl text-center font-bold"
+                min="0.01"
+                step="0.01"
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="agregarProducto()"
+            [disabled]="!productoSeleccionado"
+            class="w-full mt-6 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-40 transition shadow-xl shadow-blue-200"
+          >
+            Agregar a la lista
+          </button>
+        </div>
+
+        <!-- TABLA -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="bg-slate-50 border-0">
+                <tr class="text-[10px] font-black text-slate-400 uppercase border-0">
+                  <th class="px-6 py-4 border-0">Producto</th>
+                  <th class="px-6 py-4 text-center border-0">Cant.</th>
+                  <th class="px-6 py-4 text-right border-0">Precio</th>
+                  <th class="px-6 py-4 text-right border-0">Subtotal</th>
+                  <th class="px-6 py-4 border-0"></th>
+                </tr>
+              </thead>
+
+              <tbody class="divide-y divide-slate-50">
+                <tr *ngFor="let item of items; let i = index" class="hover:bg-slate-50">
+                  <td class="px-6 py-4">
+                    <p class="font-bold text-slate-800">
+                      {{ item.nombre }}
+                    </p>
+
+                    <p
+                      *ngIf="item.marcaNombre || item.categoriaNombre"
+                      class="text-[10px] text-slate-500 font-bold uppercase"
+                    >
+                      {{ item.marcaNombre || 'Sin marca' }} · {{ item.categoriaNombre || 'Sin categoría' }}
+                    </p>
+
+                    <p class="text-[10px] text-blue-500 font-bold uppercase">
+                      STOCK ACTUAL: {{ item.stockActual }}
+                    </p>
+                  </td>
+
+                  <td class="px-6 py-4 text-center">
+                    <input
+                      type="number"
+                      min="1"
+                      class="w-20 p-2 bg-slate-100 rounded-xl text-center font-bold text-slate-700"
+                      [(ngModel)]="item.cantidad"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="onCantidadItemChange(item)"
+                    />
+                  </td>
+
+                  <td class="px-6 py-4 text-right">
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      class="w-28 p-2 bg-slate-100 rounded-xl text-right font-bold text-slate-700"
+                      [(ngModel)]="item.precio"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="onPrecioItemChange(item)"
+                    />
+                  </td>
+
+                  <td class="px-6 py-4 text-right font-black text-slate-900">
+                    {{ item.subtotal | currency }}
+                  </td>
+
+                  <td class="px-6 py-4 text-right">
+                    <button
+                      type="button"
+                      (click)="eliminarItem(i)"
+                      class="text-slate-300 hover:text-red-500 transition"
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div
+            *ngIf="items.length === 0"
+            class="p-12 text-center text-slate-400 italic"
+          >
+            No hay productos en la lista de compra.
+          </div>
+
+          <div class="p-8 bg-slate-900 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+              <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">
+                Total de la Compra
+              </p>
+              <p class="text-4xl font-black text-white">
+                {{ totalCompra | currency }}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              (click)="registrarCompra()"
+              [disabled]="cargando || items.length === 0"
+              class="w-full md:w-auto px-12 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-500 disabled:bg-slate-800 transition shadow-xl shadow-blue-900/20"
+            >
+              {{ cargando ? 'Guardando...' : 'Confirmar Ingreso' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    *ngIf="modalOkVisible"
+    class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50"
+  >
+    <div class="bg-white rounded-3xl shadow-2xl p-7 w-full max-w-sm space-y-4 border border-emerald-200">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl font-black">
+          ✓
+        </div>
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">Listo</h2>
+          <div class="text-[11px] text-emerald-700 font-bold uppercase tracking-widest">
+            Operación exitosa
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm text-slate-700 font-medium">{{ modalOkMensaje }}</p>
+
+      <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full w-2/3 bg-emerald-500 rounded-full"></div>
+      </div>
+
+      <div class="text-[11px] text-slate-500">Redirigiendo...</div>
+    </div>
+  </div>
+</div>
