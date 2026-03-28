@@ -8,7 +8,7 @@ public static class DbInitializer
 {
     public static async Task SeedUsuarioAdminAsync(CatalogoDbContext context)
     {
-        const string cedula = "1753724485";
+        const string cedula = "1753724481";
 
         var usuarioExistente = await context.Usuarios
             .FirstOrDefaultAsync(u => u.UsuCedula == cedula && u.DeletedAt == null);
